@@ -1,11 +1,10 @@
-#ifndef BOARD_OTA_H
-#define BOARD_OTA_H
+#pragma once
+
 
 #include <ESP8266WiFi.h>
 #include <ESP8266httpUpdate.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClientSecure.h>
-#include <ArduinoJson.h>
 
 String checkForUpdates(String VERSION_JSON_URL, String FIRMWARE_VERSION)
 {
@@ -88,5 +87,3 @@ String checkForUpdates(String VERSION_JSON_URL, String FIRMWARE_VERSION)
     return "Failed to connect.";
   }
 }
-
-#endif // BOARD_OTA_H

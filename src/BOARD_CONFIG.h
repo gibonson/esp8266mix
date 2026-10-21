@@ -1,8 +1,7 @@
-#ifndef BOARD_CONFIG_H
-#define BOARD_CONFIG_H
+#pragma once
 
+#include <Arduino.h>
 #include <LittleFS.h>
-#include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 
 struct DeviceConfig
@@ -24,8 +23,7 @@ struct DeviceConfig
 
 DeviceConfig deviceConfig;
 
-#ifdef esp8266watchdog
-
+#ifdef ESP8266_WATCHDOG
 struct ServiceCheckConfig
 {
     String ipsName;
@@ -34,26 +32,21 @@ struct ServiceCheckConfig
 };
 
 ServiceCheckConfig serviceCheckConfig[6];
-
 #endif
 
-#ifdef esp8266satelite
-
+#ifdef ESP8266_SATELLITE
 struct ModuleConfig
 {
     String moduleName;
-    String moduleStatus;
-    String notificationStatus;
-    String notificationName;
-    String notificationCondition;
-    String notificationValue;
+    String moduleActive;
 };
 
 ModuleConfig moduleConfig[10];
-
 #endif
 
 // --- Config template ---
+
+#ifdef ESP8266_WATCHDOG
 const String defaultJsonTemplate = "{\n"
                                    "  \"wifi\": {\n"
                                    "    \"ssid\": \"\",\n"
@@ -77,6 +70,33 @@ const String defaultJsonTemplate = "{\n"
                                    "    }\n"
                                    "  ]\n"
                                    "}";
+#endif
+
+#ifdef ESP8266_SATELLITE
+const String defaultJsonTemplate = "{\n"
+                                   "  \"wifi\": {\n"
+                                   "    \"ssid\": \"\",\n"
+                                   "    \"password\": \"\",\n"
+                                   "    \"localIp\": \"192.168.0.199\"\n"
+                                   "  },\n"
+                                   "  \"pushover\": {\n"
+                                   "    \"userKey\": \"\",\n"
+                                   "    \"apiToken\": \"\"\n"
+                                   "  },\n"
+                                   "  \"serverJson\": \"http://192.168.0.242:5000/api/addEvent\",\n"
+                                   "  \"serverOta\": \"\",\n"
+                                   "  \"moduleList\": [\n"
+                                   "    {\n"
+                                   "      \"name\": \"Oled\",\n"
+                                   "      \"active\": \"yes\"\n"
+                                   "    },\n"
+                                   "    {\n"
+                                   "      \"name\": \"DHT22\",\n"
+                                   "      \"active\": \"no\"\n"
+                                   "    }\n"
+                                   "  ]\n"
+                                   "}";
+#endif
 
 bool stringToIP(const String &str, IPAddress &ip)
 {
@@ -87,7 +107,7 @@ void initLittleFS()
 {
     if (!LittleFS.begin())
     {
-        Serial.println(F("Blad montowania LittleFS"));
+        addLog("BOARD_CONFIG - failed mounting of LittleFS!");
     }
 }
 
@@ -106,7 +126,7 @@ String readRawConfig()
 {
     if (!LittleFS.exists("/config.json"))
     {
-        Serial.println(F("no /config.json - create config.json and save template"));
+        addLog("BOARD_CONFIG - no /config.json - create config.json and save template");
         saveRawConfig(defaultJsonTemplate);
         return defaultJsonTemplate;
     }
@@ -124,7 +144,7 @@ String readRawConfig()
 
     if (error || content.length() == 0)
     {
-        Serial.println(F("config.json - empty or format error, load default template."));
+        addLog("BOARD_CONFIG -config.json - empty or format error, load default template.");
         saveRawConfig(defaultJsonTemplate);
         return defaultJsonTemplate;
     }
@@ -140,8 +160,7 @@ void loadConfiguration()
 
     if (error)
     {
-        Serial.print(F("JSON format error: "));
-        Serial.println(error.c_str());
+        addLog("BOARD_CONFIG - JSON format error: " + String(error.c_str()));
         return;
     }
 
@@ -157,7 +176,7 @@ void loadConfiguration()
     deviceConfig.serverJson = doc["serverJson"] | "";
     deviceConfig.serverOta = doc["serverOta"] | "";
 
-#ifdef esp8266watchdog
+#ifdef ESP8266_WATCHDOG
 
     JsonArray deviceList = doc["deviceList"].as<JsonArray>();
 
@@ -176,13 +195,33 @@ void loadConfiguration()
 
     for (int j = i; j < 6; j++)
     {
-        serviceCheckConfig[i].ips = "";
-        serviceCheckConfig[i].ipsName = "-";
-        serviceCheckConfig[i].ipsPort = "";
+        serviceCheckConfig[j].ips = "";
+        serviceCheckConfig[j].ipsName = "-";
+        serviceCheckConfig[j].ipsPort = "";
     }
-    Serial.println(F("Configuration loaded successfully."));
+#endif
+
+#ifdef ESP8266_SATELLITE
+    JsonArray moduleList = doc["moduleList"].as<JsonArray>();
+
+    int i = 0;
+    for (JsonObject module : moduleList)
+    {
+        if (i >= 10)
+            break;
+
+        moduleConfig[i].moduleName = module["name"] | "-";
+        moduleConfig[i].moduleActive = module["active"] | "";
+
+        i++;
+    }
+
+    for (int j = i; j < 10; j++)
+    {
+        moduleConfig[j].moduleName = "";
+        moduleConfig[j].moduleActive = "-";
+    }
 
 #endif
+    addLog("BOARD_CONFIG - Configuration loaded successfully.");
 }
-
-#endif // BOARD_CONFIG_H

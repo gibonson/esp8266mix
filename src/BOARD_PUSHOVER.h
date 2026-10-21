@@ -1,5 +1,4 @@
-#ifndef PUSHOVER_H
-#define PUSHOVER_H
+#pragma once
 
 String _pushoverToken = "";
 String _pushoverUser = "";
@@ -52,5 +51,3 @@ void sendPushover(String message)
     }
     http.end();
 }
-
-#endif // PUSHOVER_H

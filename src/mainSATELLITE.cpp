@@ -10,10 +10,10 @@ String appVersion = "0.00";
 // Project files list
 String moduleList = "DS18B20,DHT22,OLED,BuiltinLed,RADIO_433"; // List of modules available in the system
 
-#include "BOARD_LOGGING_SA.h"       // Log management file
-#include "BOARD_CONFIG_SA.h" // Board configuration file
+#include "BOARD_LOGGING.h"       // Log management file
+#include "BOARD_CONFIG.h" // Board configuration file
 #include "BOARD_WIFI.h"          // Wi-Fi management file
-#include "BOARD_JSON_SA.h"
+#include "BOARD_JSON.h"
 #include "BOARD_WEB_GUI_SA.h" // Web GUI management file
 
 WebGui webGui;

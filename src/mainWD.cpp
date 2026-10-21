@@ -14,9 +14,9 @@ String appVersion = "0.00";
 #include "BOARD_CONFIG.h"
 #include "BOARD_WIFI.h"
 #include "BOARD_WEB_GUI_WD.h"
-#include "BOARD_OTA_WD.h"
+#include "BOARD_OTA.h"
 #include "BOARD_JSON.h"
-#include "BOARD_PUSHOVER_WD.h"
+#include "BOARD_PUSHOVER.h"
 
 
 

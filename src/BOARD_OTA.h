@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <ESP8266WiFi.h>
 #include <ESP8266httpUpdate.h>
 #include <ESP8266HTTPClient.h>
@@ -40,7 +39,7 @@ String checkForUpdates(String VERSION_JSON_URL, String FIRMWARE_VERSION)
       Serial.printf("Current version: %s, Latest version: %s\n", FIRMWARE_VERSION.c_str(), latest_version.c_str());
 
       // 2. COMPARE VERSIONS
-      if (latest_version != FIRMWARE_VERSION)
+      if (latest_version.toFloat() > FIRMWARE_VERSION.toFloat())
       {
         Serial.println("New version found! Starting download...");
         ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);

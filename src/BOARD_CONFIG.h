@@ -23,7 +23,6 @@ struct DeviceConfig
 
 DeviceConfig deviceConfig;
 
-
 struct ModuleConfig
 {
     String moduleName;
@@ -32,19 +31,17 @@ struct ModuleConfig
 
 ModuleConfig moduleConfig[10];
 
-
 bool isModuleActive(String name)
 {
     for (int i = 0; i < 10; i++)
     {
-        if (moduleConfig[i].moduleName == name)
+        if (moduleConfig[i].moduleName.equalsIgnoreCase(name))
         {
-            return (moduleConfig[i].moduleActive == "yes");
+            return (moduleConfig[i].moduleActive.equalsIgnoreCase("yes"));
         }
     }
     return false; // Jeśli modułu nie ma na liście, domyślnie jest wyłączony
 }
-
 
 #ifdef ESP8266_WATCHDOG
 struct ServiceCheckConfig
@@ -64,7 +61,7 @@ const String defaultJsonTemplate = "{\n"
                                    "  \"wifi\": {\n"
                                    "    \"ssid\": \"\",\n"
                                    "    \"password\": \"\",\n"
-                                   "    \"localIp\": \"192.168.0.199\"\n"
+                                   "    \"localIp\": \"\"\n"
                                    "  },\n"
                                    "  \"pushover\": {\n"
                                    "    \"userKey\": \"\",\n"
@@ -96,7 +93,7 @@ const String defaultJsonTemplate = "{\n"
                                    "  \"wifi\": {\n"
                                    "    \"ssid\": \"\",\n"
                                    "    \"password\": \"\",\n"
-                                   "    \"localIp\": \"192.168.0.199\"\n"
+                                   "    \"localIp\": \"\"\n"
                                    "  },\n"
                                    "  \"pushover\": {\n"
                                    "    \"userKey\": \"\",\n"
@@ -158,7 +155,7 @@ String readRawConfig()
         f.close();
     }
 
-    DynamicJsonDocument testDoc(1024);
+    DynamicJsonDocument testDoc(2048);
     DeserializationError error = deserializeJson(testDoc, content);
 
     if (error || content.length() == 0)
@@ -174,7 +171,7 @@ void loadConfiguration()
 {
     String rawConfig = readRawConfig();
 
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(2048);
     DeserializationError error = deserializeJson(doc, rawConfig);
 
     if (error)
@@ -195,32 +192,6 @@ void loadConfiguration()
     deviceConfig.serverJson = doc["serverJson"] | "";
     deviceConfig.serverOta = doc["serverOta"] | "";
 
-#ifdef ESP8266_WATCHDOG
-
-    JsonArray deviceList = doc["deviceList"].as<JsonArray>();
-
-    int i = 0;
-    for (JsonObject device : deviceList)
-    {
-        if (i >= 6)
-            break;
-
-        serviceCheckConfig[i].ipsName = device["name"] | "-";
-        serviceCheckConfig[i].ips = device["ip"] | "";
-        serviceCheckConfig[i].ipsPort = device["port"] | "";
-
-        i++;
-    }
-
-    for (int j = i; j < 6; j++)
-    {
-        serviceCheckConfig[j].ips = "";
-        serviceCheckConfig[j].ipsName = "-";
-        serviceCheckConfig[j].ipsPort = "";
-    }
-#endif
-
-#ifdef ESP8266_SATELLITE
     JsonArray moduleList = doc["moduleList"].as<JsonArray>();
 
     int i = 0;
@@ -241,6 +212,30 @@ void loadConfiguration()
         moduleConfig[j].moduleActive = "-";
     }
 
+#ifdef ESP8266_WATCHDOG
+
+    JsonArray deviceList = doc["deviceList"].as<JsonArray>();
+
+    i = 0;
+    for (JsonObject device : deviceList)
+    {
+        if (i >= 6)
+            break;
+
+        serviceCheckConfig[i].ipsName = device["name"] | "-";
+        serviceCheckConfig[i].ips = device["ip"] | "";
+        serviceCheckConfig[i].ipsPort = device["port"] | "";
+
+        i++;
+    }
+
+    for (int j = i; j < 6; j++)
+    {
+        serviceCheckConfig[j].ips = "";
+        serviceCheckConfig[j].ipsName = "-";
+        serviceCheckConfig[j].ipsPort = "";
+    }
 #endif
+
     addLog("BOARD_CONFIG - Configuration loaded successfully.");
 }

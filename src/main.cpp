@@ -6,7 +6,7 @@
 #include <ESP8266WebServer.h>
 
 ESP8266WebServer server(80);
-String appVersion = "0.00";
+String appVersion = "100.100";
 
 #include "BOARD_LOGGING.h"
 #include "BOARD_CONFIG.h"
@@ -45,14 +45,12 @@ void setup()
 {
 
     Serial.begin(115200);
+    initLittleFS();
+    loadConfiguration();
+
     initOled();
     updateOled(deviceType + " " + appVersion, "", "  (co tu sie      )", "   \\  odpierdala_/", "    \\/", "     |\\__/,|   ( \\", "   _.|o o  |_   ) )", " -(((---(((--------");
     delay(3000);
-
-    // Config setup -------------------------------------------
-
-    initLittleFS();
-    loadConfiguration();
 
     String apIP = initAccessPoint(accessPointName, accessPointPassword);
     initWebGUI();
@@ -100,13 +98,15 @@ void setup()
 
     updateOled("SSID: " + String(deviceConfig.ssid), "", "  (Connecting to  )", "   \\  the WIFI  _/", "    \\/", "     |\\__/,|   ( \\", "   _.|o o  |_   ) )", " -(((---(((--------");
 
+    Serial.println("SSID" + deviceConfig.ssid);
+    Serial.println("pass" + deviceConfig.password);
     initWifiClient(deviceConfig.ssid, deviceConfig.password);
 
     updateOled("SSID: " + String(deviceConfig.ssid), "", "  (Okay, I\'m .    )", "   \\  ONLINE!!  _/", "    \\/", "     |\\__/,|   ( \\", "   _.|o o  |_   ) )", " -(((---(((--------");
     initPushover(deviceConfig.pushoverApiToken, deviceConfig.pushoverUserKey, deviceType + " " + appVersion);
     sendPushover("Watchdog has just started its watch.");
 
-    initJson(deviceConfig.serverJson, deviceType, deviceConfig.deviceName);
+    initJson(deviceConfig.serverJson, deviceConfig.deviceName, WiFi.localIP().toString());
     sendJson("String addInfo", 666, "String type", "String requestID");
 
     updateOled("SSID: " + String(deviceConfig.ssid), "FIRMWARE UPDATE", "Version: " + appVersion, "OTA Server:", deviceConfig.serverOta.substring(0, 20), "Status:", "...", "");

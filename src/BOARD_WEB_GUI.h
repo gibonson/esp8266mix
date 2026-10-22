@@ -95,7 +95,7 @@ void handleSave()
 
 void initWebGUI()
 {
-  server.on("/", HTTP_GET, handleRoot);
+  server.on("/config", HTTP_GET, handleRoot);
   server.on("/save", HTTP_POST, handleSave);
   server.begin();
   Serial.println(F("Web GUI Started"));

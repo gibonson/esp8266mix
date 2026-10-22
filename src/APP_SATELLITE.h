@@ -17,7 +17,6 @@ void setupRouting()
                   server.sendContent("");                          // ZAMYKA strumień HTML!
               });
 
-
     server.on("/logs", HTTP_GET, []()
               {
                   server.setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -68,11 +67,15 @@ void setupRouting()
     else if (func == "getDS18B20") execute_ds18b20(jsonDoc);
     else if (func.indexOf("433") >= 0) execute_433(jsonDoc);
     else responseJson("Unknown function: " + func, 0, "error", jsonDoc["requestID"].as<String>()); });
+
+    server.begin(); 
+    addLog("APP_SATELLITE - Web GUI Server started!");
 }
 
 void app_setup()
 {
-
+    addLog("APP_SATELLITE - Uruchamianie logiki satelity...");
+    
     init_led_pins(); // Initialize LED pins
     init_ds18b20();  // Initialize DS18B20 sensor configuration
     init_dht22();    // Initialize DHT22 sensor configuration
@@ -83,6 +86,7 @@ void app_setup()
 
 void app_loop()
 {
+    Serial.println("test");
     handleLedSequence();   // Checking LEDs without blocking
     server.handleClient(); // <--- Ta JEDNA komenda obsługuje teraz całą sieć WWW i zapytania!
 }

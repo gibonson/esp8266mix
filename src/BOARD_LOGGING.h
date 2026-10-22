@@ -12,11 +12,11 @@ void initLog(bool enableGuiLogs)
 
   if (_guiLogsEnabled)
   {
-    addLog("BOARD_LOGGING - GUI Logs ENABLED (Size: 20)");
+    Serial.println("BOARD_LOGGING - GUI Logs ENABLED (Size: 20)");
   }
   else
   {
-    addLog("BOARD_LOGGING - GUI Logs DISABLED (Only Serial)");
+    Serial.println("BOARD_LOGGING - GUI Logs DISABLED (Only Serial)");
   }
 }
 

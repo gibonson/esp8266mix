@@ -23,6 +23,29 @@ struct DeviceConfig
 
 DeviceConfig deviceConfig;
 
+
+struct ModuleConfig
+{
+    String moduleName;
+    String moduleActive;
+};
+
+ModuleConfig moduleConfig[10];
+
+
+bool isModuleActive(String name)
+{
+    for (int i = 0; i < 10; i++)
+    {
+        if (moduleConfig[i].moduleName == name)
+        {
+            return (moduleConfig[i].moduleActive == "yes");
+        }
+    }
+    return false; // Jeśli modułu nie ma na liście, domyślnie jest wyłączony
+}
+
+
 #ifdef ESP8266_WATCHDOG
 struct ServiceCheckConfig
 {
@@ -32,16 +55,6 @@ struct ServiceCheckConfig
 };
 
 ServiceCheckConfig serviceCheckConfig[6];
-#endif
-
-#ifdef ESP8266_SATELLITE
-struct ModuleConfig
-{
-    String moduleName;
-    String moduleActive;
-};
-
-ModuleConfig moduleConfig[10];
 #endif
 
 // --- Config template ---
@@ -68,6 +81,12 @@ const String defaultJsonTemplate = "{\n"
                                    "      \"name\": \"Google DNS (Test)\",\n"
                                    "      \"ip\": \"8.8.8.8\"\n"
                                    "    }\n"
+                                   "  ],\n"
+                                   "  \"moduleList\": [\n"
+                                   "    {\n"
+                                   "      \"name\": \"OLED\",\n"
+                                   "      \"active\": \"yes\"\n"
+                                   "    }\n"
                                    "  ]\n"
                                    "}";
 #endif
@@ -87,7 +106,7 @@ const String defaultJsonTemplate = "{\n"
                                    "  \"serverOta\": \"\",\n"
                                    "  \"moduleList\": [\n"
                                    "    {\n"
-                                   "      \"name\": \"Oled\",\n"
+                                   "      \"name\": \"OLED\",\n"
                                    "      \"active\": \"yes\"\n"
                                    "    },\n"
                                    "    {\n"

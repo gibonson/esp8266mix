@@ -1,18 +1,21 @@
 #pragma once
 
-// LCD libraries
+#include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-// LCD Configuration
+// --- LCD Configuration ---
 #define SCREEN_WIDTH 128    // OLED display width, in pixels
 #define SCREEN_HEIGHT 64    // OLED display height, in pixels
 #define OLED_RESET -1       // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C // If not work please try 0x3D
 #define OLED_SDA D5         // Stock firmware shows wrong pins
 #define OLED_SCL D6         // They swap SDA with SCL ;)
-Adafruit_SSD1306 *display;
 
+static Adafruit_SSD1306 *display = nullptr;
+static bool isOledConnected = false;
+
+#ifdef ESP8266_SATELLITE
 void renderOledGui()
 {
   server.sendContent(webGui.pHtml("webFormOLED"));
@@ -28,71 +31,85 @@ void renderOledGui()
   server.sendContent(webGui.formText("Text to send:", "value8", "1"));
   server.sendContent(webGui.formEnd("Send to LCD"));
 }
+#endif
 
-// to void setup
-void init_oled()
+void initOled()
 {
-  String moduleName = "OLED";
-  Serial.println(deviceConfig.disableModuleList);
 
-  if (deviceConfig.disableModuleList.indexOf(moduleName) != -1)
+  if (!isModuleActive("OLED"))
   {
-    Serial.println("Module " + moduleName + " is disabled.");
+    addLog("MODULE_OLED - Module is disabled in configuration.");
+    return;
   }
-  else
-  {
+  #ifdef ESP8266_SATELLITE
     registerModuleGui(renderOledGui);
-    display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-    // OLED used nonstandard SDA and SCL pins
-    Wire.begin(D5, D6);
-    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-    if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
-    {
-      Serial.println(F("SSD1306 allocation failed"));
-      return;
-    }
+  #endif
+  
+  display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+  Wire.begin(OLED_SDA, OLED_SCL);
+
+  if (!display->begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
+  {
+    addLog("MODULE_OLED - Allocation or connection failed! Hardware missing?");
+    isOledConnected = false;
+    delete display;
+    display = nullptr;
+    return;
   }
+
+  isOledConnected = true;
+  display->clearDisplay();
+  display->display();
+  addLog("MODULE_OLED - Initialized successfully.");
 }
 
-void handle_oled(String value1, String value2, String value3, String value4, String value5, String value6, String value7, String value8)
+void updateOled(String line1, String line2, String line3, String line4, String line5, String line6, String line7, String line8)
 {
+  // Zabezpieczenie przed zawieszeniem, jeśli brak sprzętu lub pamięci
+  if (!isOledConnected || display == nullptr)
+    return;
+
   display->clearDisplay();
   display->setTextSize(1);
   display->setTextColor(SSD1306_WHITE);
   display->setCursor(0, 0);
 
-  display->println(value1);
-  display->println(value2);
-  display->println(value3);
-  display->println(value4);
-  display->println(value5);
-  display->println(value6);
-  display->println(value7);
-  display->println(value8);
-  display->println(value8);
+  display->println(line1);
+  display->println(line2);
+  display->println(line3);
+  display->println(line4);
+  display->println(line5);
+  display->println(line6);
+  display->println(line7);
+  display->println(line8);
 
   display->display();
 }
 
-void execute_oled(StaticJsonDocument<400> jsonDoc)
+void executeOled(StaticJsonDocument<400> jsonDoc)
 {
-  String moduleName = "OLED";
-  if (deviceConfig.disableModuleList.indexOf(moduleName) != -1)
+  if (!isModuleActive("OLED"))
   {
-    responseJson("Module " + moduleName + " is disabled in disableModuleList", 0, "error", jsonDoc["requestID"].as<String>());
+    addLog("MODULE_OLED - Module is disabled in configuration.");
+    return;
   }
-  else
-  {
-    String value1 = jsonDoc["value1"].as<String>();
-    String value2 = jsonDoc["value2"].as<String>();
-    String value3 = jsonDoc["value3"].as<String>();
-    String value4 = jsonDoc["value4"].as<String>();
-    String value5 = jsonDoc["value5"].as<String>();
-    String value6 = jsonDoc["value6"].as<String>();
-    String value7 = jsonDoc["value7"].as<String>();
-    String value8 = jsonDoc["value8"].as<String>();
 
-    responseJson("OLED updated", 1, "log", jsonDoc["requestID"].as<String>());
-    handle_oled(value1, value2, value3, value4, value5, value6, value7, value8);
+  if (!isOledConnected)
+  {
+    responseJson("OLED hardware error", 0, "error", jsonDoc["requestID"].as<String>());
+    return;
   }
+
+  String v1 = jsonDoc["value1"].as<String>();
+  String v2 = jsonDoc["value2"].as<String>();
+  String v3 = jsonDoc["value3"].as<String>();
+  String v4 = jsonDoc["value4"].as<String>();
+  String v5 = jsonDoc["value5"].as<String>();
+  String v6 = jsonDoc["value6"].as<String>();
+  String v7 = jsonDoc["value7"].as<String>();
+  String v8 = jsonDoc["value8"].as<String>();
+
+  updateOled(v1, v2, v3, v4, v5, v6, v7, v8);
+  responseJson("OLED updated", 1, "log", jsonDoc["requestID"].as<String>());
 }

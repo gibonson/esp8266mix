@@ -17,25 +17,6 @@ void setupRouting()
                   server.sendContent("");                          // ZAMYKA strumień HTML!
               });
 
-    server.on("/newConfig", HTTP_GET, []()
-              {
-                  server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-                  server.send(200, "text/html", "");
-                  webGui.streamNewConfigPage(deviceConfig.ssid, deviceConfig.password, deviceConfig.deviceIP, deviceConfig.deviceName, deviceConfig.serverAddress, deviceConfig.disableModuleList);
-                  server.sendContent(""); // ZAMYKA strumień HTML!
-              });
-
-    server.on("/saveNewConfig", HTTP_POST, []()
-              {
-    if (server.hasArg("ssid")) deviceConfig.ssid = server.arg("ssid");
-    if (server.hasArg("password")) deviceConfig.password = server.arg("password");
-    if (server.hasArg("deviceIP")) deviceConfig.deviceIP = server.arg("deviceIP");
-    if (server.hasArg("deviceName")) deviceConfig.deviceName = server.arg("deviceName");
-    if (server.hasArg("serverAddress")) deviceConfig.serverAddress = server.arg("serverAddress");
-    if (server.hasArg("disableList")) deviceConfig.disableModuleList = server.arg("disableList");
-    
-    saveConfig();
-    server.send(200, "text/html", "<html><body><h1>Configuration updated</h1><p>Your settings were saved.</p><a href='/newConfig'><button class='button'>Back</button></a><a href='/'><button class='button'>Home</button></a></body></html>"); });
 
     server.on("/logs", HTTP_GET, []()
               {
@@ -57,11 +38,6 @@ void setupRouting()
     server.on("/status", HTTP_GET, []()
               { responseJson("Connection ok", 1, "log", "Device Status"); });
 
-    server.on("/readConfig", HTTP_GET, []()
-              {
-          String configData = "SSID: " + deviceConfig.ssid + "\nPassword: " + deviceConfig.password + "\nDevice IP: " + deviceConfig.deviceIP + "\nDevice Name: " + deviceConfig.deviceName + "\nServer Address: " + deviceConfig.serverAddress + "\nDisable List: " + deviceConfig.disableModuleList;
-          responseJson(configData, 1, "log", "Device Config"); });
-
     server.on("/restart", HTTP_GET, []()
               {
     responseJson("Reset", 1, "log", "Device Status");
@@ -81,7 +57,7 @@ void setupRouting()
     
     String func = jsonDoc["function"].as<String>();
 
-    if (func == "lcd") execute_oled(jsonDoc);
+    if (func == "lcd") executeOled(jsonDoc);
     else if (func == "builtinLed") execute_builtinLed(jsonDoc);
     else if (func == "led_pin_2") execute_led_pin_2(jsonDoc);
     else if (func == "led_pin_3") execute_led_pin_3(jsonDoc);
@@ -97,7 +73,6 @@ void setupRouting()
 void app_setup()
 {
 
-    init_oled();     // Initialize OLED display
     init_led_pins(); // Initialize LED pins
     init_ds18b20();  // Initialize DS18B20 sensor configuration
     init_dht22();    // Initialize DHT22 sensor configuration
@@ -108,13 +83,6 @@ void app_setup()
 
 void app_loop()
 {
-    if (motionDetected == true)
-    {
-        motionDetected = false;
-        Serial.println("Interrupt!!! - Motion detected");
-        sendJson("Motion detected", 1, "Alert");
-    }
-
     handleLedSequence();   // Checking LEDs without blocking
     server.handleClient(); // <--- Ta JEDNA komenda obsługuje teraz całą sieć WWW i zapytania!
 }

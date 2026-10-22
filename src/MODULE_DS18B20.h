@@ -18,43 +18,36 @@ void renderDS18B20Gui()
 
 void init_ds18b20()
 {
-    String moduleName = "DS18B20";
-    Serial.println(deviceConfig.disableModuleList);
-
-    if (deviceConfig.disableModuleList.indexOf(moduleName) != -1)
+    if (!isModuleActive("DS18B20"))
     {
-        Serial.println("Module " + moduleName + " is disabled.");
+        addLog("MODULE_DS18B20 - Module is disabled in configuration.");
+        return;
     }
-    else
-    {
-        Serial.println("Initializing module: " + moduleName);
-
-        registerModuleGui(renderDS18B20Gui);
-
-        sensors.begin(); // Initialize the DS18B20 sensor
-    }
+    addLog("MODULE_DS18B20 - enabled.");
+    registerModuleGui(renderDS18B20Gui);
+    sensors.begin(); // Initialize the DS18B20 sensor
 }
 
 void execute_ds18b20(StaticJsonDocument<400> jsonDoc)
 {
-    String moduleName = "DS18B20";
-    if (deviceConfig.disableModuleList.indexOf(moduleName) != -1)
+
+    if (!isModuleActive("DS18B20"))
     {
-        responseJson("Module " + moduleName + " is disabled in disableModuleList", 0, "error", jsonDoc["requestID"].as<String>());
+        addLog("MODULE_DS18B20 - Module is disabled in configuration.");
+        return;
+    }
+
+    sensors.requestTemperatures();
+    float newT = sensors.getTempCByIndex(0);
+    Serial.print("DS18B20 Temperature: ");
+    Serial.println(newT);
+    if (newT == DEVICE_DISCONNECTED_C)
+    {
+        responseJson("DS18B20 sensor disconnected", 0, "error", jsonDoc["requestID"].as<String>());
+        sendJson("DS18B20 sensor disconnected: ", 0, "error", jsonDoc["requestID"].as<String>());
     }
     else
     {
-
-        sensors.requestTemperatures();
-        float newT = sensors.getTempCByIndex(0);
-        Serial.print("DS18B20 Temperature: ");
-        Serial.println(newT);
-        if (newT == DEVICE_DISCONNECTED_C)
-        {
-            responseJson("DS18B20 sensor disconnected", 0, "error", jsonDoc["requestID"].as<String>());
-            sendJson("DS18B20 sensor disconnected: ", 0, "error", jsonDoc["requestID"].as<String>());
-        }
-        // float newT = random(20, 30); // Simulated temperature value
         responseJson("DS18B20 data", 1, "log", jsonDoc["requestID"].as<String>());
         sendJson("DS18B20 temperature: ", newT, "°C", jsonDoc["requestID"].as<String>());
     }

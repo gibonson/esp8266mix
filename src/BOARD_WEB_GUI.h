@@ -1,9 +1,5 @@
 #pragma once
 
-#include <ESP8266WebServer.h>
-
-ESP8266WebServer server(80);
-
 void handleRoot()
 {
   String configContent = readRawConfig();
@@ -138,8 +134,6 @@ public:
                             "</style>\n</head>\n<body></br>\n"
                             "<div class='button-group button-row'>"
                             "<a href='/'><button class='button'>Home</button></a>"
-                            "<a href='/newConfig'><button class='button'>NewConfig</button></a>"
-                            "<a href='/readConfig'><button class='button'>Read Config</button></a>"
                             "<a href='/logs'><button class='button'>Logs</button></a>"
                             "<a href='/status'><button class='button'>Status</button></a>"
                             "<a href='/restart'><button class='button2'>restart</button></a>"
@@ -219,7 +213,7 @@ public:
     }
 
     server.sendContent("<h6>APP Version: ");
-    server.sendContent(String(APP_VERSION));
+    server.sendContent(appVersion);
     server.sendContent("</h6>");
     server.sendContent(HTML_END);
   }

@@ -17,35 +17,30 @@ void renderDHT22Gui()
 
 void init_dht22()
 {
-    String moduleName = "DHT22";
-    Serial.println(deviceConfig.disableModuleList);
-    if (deviceConfig.disableModuleList.indexOf(moduleName) != -1)
+    if (!isModuleActive("DHT22"))
     {
-        Serial.println("Module " + moduleName + " is disabled.");
+        addLog("MODULE_DHT22 - Module is disabled in configuration.");
+        return;
     }
-    else
-    {
-        Serial.println("Initializing module: " + moduleName);
-        registerModuleGui(renderDHT22Gui);
-        dht.begin(); // Initialize the DHT sensor
-    }
+
+    addLog("MODULE_DHT22 - enabled.");
+    registerModuleGui(renderDHT22Gui);
+    dht.begin(); // Initialize the DHT sensor
 }
 
 void execute_dht22(StaticJsonDocument<400> jsonDoc)
 {
-    String moduleName = "DHT22";
-    if (deviceConfig.disableModuleList.indexOf(moduleName) != -1)
+    if (!isModuleActive("DHT22"))
     {
-        responseJson("Module " + moduleName + " is disabled in disableModuleList", 0, "error", jsonDoc["requestID"].as<String>());
+        addLog("MODULE_DHT22 - Module is disabled in configuration.");
+        return;
     }
-    else
-    {
-        // float newT = random(20, 30); // Simulated temperature value
-        // float newH = random(40, 60); // Simulated humidity value
-        float newT = dht.readTemperature();
-        float newH = dht.readHumidity();
-        responseJson("DHT22 data", 1, "log", jsonDoc["requestID"].as<String>());
-        sendJson("DHT22 temperature: ", newT, "°C", jsonDoc["requestID"].as<String>());
-        sendJson("DHT22 humidity: ", newH, "%", jsonDoc["requestID"].as<String>());
-    }
+
+    // float newT = random(20, 30); // Simulated temperature value
+    // float newH = random(40, 60); // Simulated humidity value
+    float newT = dht.readTemperature();
+    float newH = dht.readHumidity();
+    responseJson("DHT22 data", 1, "log", jsonDoc["requestID"].as<String>());
+    sendJson("DHT22 temperature: ", newT, "°C", jsonDoc["requestID"].as<String>());
+    sendJson("DHT22 humidity: ", newH, "%", jsonDoc["requestID"].as<String>());
 }

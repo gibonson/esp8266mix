@@ -187,7 +187,6 @@ void execute_led_pin_all(StaticJsonDocument<400> jsonDoc)
 
   sendJson("led_pin_all started", 1, "log", sequenceReqID);
   responseJson("led_pin_all started", 1, "log", sequenceReqID);
-  client.stop();
 }
 
 // Ta funkcja będzie ciągle "nasłuchiwać" w głównej pętli

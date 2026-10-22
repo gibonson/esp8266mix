@@ -22,7 +22,7 @@ void app_loop()
         if (serviceCheckConfig[currentHostIndex].ips == "")
         {
             oledBuffer[currentHostIndex] = "-  | ---";
-            updateOLED("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
+            updateOled("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
                        oledBuffer[0], oledBuffer[1], oledBuffer[2], oledBuffer[3], oledBuffer[4], oledBuffer[5]);
         }
         else
@@ -33,14 +33,14 @@ void app_loop()
             if (serviceCheckConfig[currentHostIndex].ipsPort == "")
             {
                 oledBuffer[currentHostIndex] = "\x10  |" + serviceCheckConfig[currentHostIndex].ips;
-                updateOLED("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
+                updateOled("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
                            oledBuffer[0], oledBuffer[1], oledBuffer[2], oledBuffer[3], oledBuffer[4], oledBuffer[5]);
                 ret = Ping.ping(serviceCheckConfig[currentHostIndex].ips.c_str());
             }
             else
             {
                 oledBuffer[currentHostIndex] = ("\x10  |" + serviceCheckConfig[currentHostIndex].ips + ":" + serviceCheckConfig[currentHostIndex].ipsPort).substring(0, 22);
-                updateOLED("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
+                updateOled("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
                            oledBuffer[0], oledBuffer[1], oledBuffer[2], oledBuffer[3], oledBuffer[4], oledBuffer[5]);
                 WiFiClient client;
                 ret = client.connect(serviceCheckConfig[currentHostIndex].ips, serviceCheckConfig[currentHostIndex].ipsPort.toInt());
@@ -86,7 +86,7 @@ void app_loop()
         if (currentMillis - previousMillis >= 4000)
         {
             String wifiStatus = wifiConnectionStatus();
-            updateOLED("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
+            updateOled("SSID: " + String(deviceConfig.ssid), wifiStatus + " dBm=" + String(WiFi.RSSI()),
                        oledBuffer[0], oledBuffer[1], oledBuffer[2], oledBuffer[3], oledBuffer[4], oledBuffer[5]);
             previousMillis = currentMillis;
             currentPhase = 2;

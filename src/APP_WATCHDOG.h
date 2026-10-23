@@ -49,7 +49,7 @@ void app_loop()
 
             if (ret == false)
             {
-                if (pingFailCounter[currentHostIndex] < 99)
+                if (pingFailCounter[currentHostIndex] <= 99)
                 {
                     pingFailCounter[currentHostIndex]++;
                     IPstatus = String(pingFailCounter[currentHostIndex]);

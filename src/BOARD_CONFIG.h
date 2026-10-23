@@ -179,7 +179,8 @@ void loadConfiguration()
         addLog("BOARD_CONFIG - JSON format error: " + String(error.c_str()));
         return;
     }
-
+    
+    deviceConfig.deviceName = doc["deviceName"] | "";
     deviceConfig.ssid = doc["wifi"]["ssid"] | "";
     deviceConfig.password = doc["wifi"]["password"] | "";
     String ipStr = doc["wifi"]["localIp"] | "";

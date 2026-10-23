@@ -9,14 +9,6 @@ String moduleList = "DS18B20,DHT22,OLED,BuiltinLed,RADIO_433"; // List of module
 void setupRouting()
 {
 
-    server.on("/", HTTP_GET, []()
-              {
-                  server.setContentLength(CONTENT_LENGTH_UNKNOWN); // Tryb strumieniowania
-                  server.send(200, "text/html", "");               // Wysyłamy same nagłówki
-                  webGui.streamWebPage();                          // Nasza funkcja (bez argumentu server.client!)
-                  server.sendContent("");                          // ZAMYKA strumień HTML!
-              });
-
     server.on("/logs", HTTP_GET, []()
               {
                   server.setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -68,14 +60,14 @@ void setupRouting()
     else if (func.indexOf("433") >= 0) execute_433(jsonDoc);
     else responseJson("Unknown function: " + func, 0, "error", jsonDoc["requestID"].as<String>()); });
 
-    server.begin(); 
+    server.begin();
     addLog("APP_SATELLITE - Web GUI Server started!");
 }
 
 void app_setup()
 {
     addLog("APP_SATELLITE - Uruchamianie logiki satelity...");
-    
+
     init_led_pins(); // Initialize LED pins
     init_ds18b20();  // Initialize DS18B20 sensor configuration
     init_dht22();    // Initialize DHT22 sensor configuration

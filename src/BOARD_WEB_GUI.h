@@ -1,106 +1,7 @@
 #pragma once
 
-void handleRoot()
-{
-  String configContent = readRawConfig();
-
-  String html = R"rawliteral(
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Konfiguracja ESP</title>
-<style>
-body { font-family: Arial; margin:40px; }
-textarea { width: 100%; max-width: 500px; font-family: monospace; white-space: pre; }
-.help-box { background-color: #f2f2f2; border-left: 4px solid #4CAF50; padding: 10px; margin-bottom: 20px; max-width: 480px; font-size: 13px; line-height: 1.4; }
-</style>
-</head>
-<body>
-
-<h2>ESP Configuration (Raw)</h2>
-
-<div class="help-box">
-  <strong>File structure (each parameter on a new line):</strong><br>
-  1. SSID WiFi<br>
-  2. WiFi Password<br>
-  3. IP Address (np. 192.168.0.199)<br>
-  4. Pushover User Key<br>
-  5. Pushover API Token<br>
-  6. URL to JSON Server<br>
-  7. URL to OTA Server<br>
-  7-12. IP addresses to check. Empty lines are allowed.
-
-{<br>
-  "wifi": {<br>
-    "ssid": "",<br>
-    "password": "",<br>
-    "localIp": "192.168.0.199"<br>
-  },<br>
-  "pushover": {<br>
-    "userKey": "",<br>
-    "apiToken": ""<br>
-  },<br>
-  "serverJson": "http://192.168.0.242:5000/api/addEvent",<br>
-  "serverOta": "",<br>
-  "deviceList": [<br>
-    {<br>
-      "name": "Router",<br>
-      "ip": "192.168.0.1"<br>
-    },<br>
-    {<br>
-      "name": "Google DNS (Test)",<br>
-      "ip": "8.8.8.8"<br>
-    }<br>
-  ]<br>
-}";
-
-</div>
-
-<form action="/save" method="POST">
-<textarea name="configRaw" rows="18">)rawliteral";
-
-  html += configContent;
-
-  html += R"rawliteral(</textarea><br><br>
-<input type="submit" value="Save and Reboot">
-</form>
-
-</body>
-</html>
-)rawliteral";
-
-  server.send(200, "text/html", html);
-}
-
-void handleSave()
-{
-  if (!server.hasArg("configRaw"))
-  {
-    server.send(400, "text/plain", "No configuration data!");
-    return;
-  }
-
-  if (!saveRawConfig(server.arg("configRaw")))
-  {
-    server.send(500, "text/plain", "Error saving to flash memory");
-    return;
-  }
-
-  server.send(200, "text/html", "<h2>Configuration saved! ESP will reboot now.</h2>");
-
-  delay(1000);
-  ESP.restart();
-}
-
-void initWebGUI()
-{
-  server.on("/config", HTTP_GET, handleRoot);
-  server.on("/save", HTTP_POST, handleSave);
-  server.begin();
-  Serial.println(F("Web GUI Started"));
-}
-
+extern bool configSaved;
+extern String appVersion;
 
 typedef void (*ModuleGuiRenderer)(); // Typ: Wskaźnik na funkcję rysującą
 ModuleGuiRenderer guiRenderers[15];  // Tablica pomieści maksymalnie 15 modułów (zużywa tylko kilkadziesiąt bajtów RAM!)
@@ -128,6 +29,8 @@ public:
                             ".submit {background-color: #4CAF50;}\n"
                             ".button {background-color: limegreen;}\n"
                             ".button2 {background-color: tomato;}\n"
+                            "textarea { width: 100%; max-width: 800px; font-family: monospace; white-space: pre; }\n"
+                            ".help-box { background-color: #e8f5e9; border-left: 4px solid #4CAF50; padding: 10px; margin-bottom: 20px; font-size: 14px; text-align: left; }\n"
                             "table {width: 80%;  margin: auto;}\n"
                             "th, td {width: 50%; padding: 8px; text-align: left; 1px solid #ddd;}\n"
                             ".button-row {display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;}\n"
@@ -185,9 +88,7 @@ public:
   void streamWebPage()
   {
     server.sendContent(HTML_BEGIN);
-    server.sendContent("<h1>");
-    server.sendContent(deviceConfig.deviceName);
-    server.sendContent("</h1>");
+    server.sendContent("<h1>" + deviceConfig.deviceName + "</h1>");
     server.sendContent(END_LINE);
 
     server.sendContent("<div class='container'><textarea id='logs' readonly name='logs' rows='11' cols='120'>");
@@ -215,6 +116,48 @@ public:
     server.sendContent("<h6>APP Version: ");
     server.sendContent(appVersion);
     server.sendContent("</h6>");
+    server.sendContent(HTML_END);
+  }
+
+  void streamConfigPage(String configContent)
+  {
+    server.sendContent(HTML_BEGIN);
+    server.sendContent("<h2>ESP Configuration (Raw)</h2>\n");
+    server.sendContent(
+        "<div class='help-box'>\n"
+        "  <strong>File structure example:</strong><br>\n"
+        "{\n<br>"
+        "  \"wifi\": {\n<br>"
+        "    \"ssid\": \"\",\n<br>"
+        "    \"password\": \"\",\n<br>"
+        "    \"localIp\": \"192.168.0.199\"\n<br>"
+        "  },\n<br>"
+        "  \"pushover\": {\n<br>"
+        "    \"userKey\": \"\",\n<br>"
+        "    \"apiToken\": \"\"\n<br>"
+        "  },\n<br>"
+        "  \"serverJson\": \"http://192.168.0.242:5000/api/addEvent\",\n<br>"
+        "  \"serverOta\": \"\",\n<br>"
+        "  \"deviceList\": [\n<br>"
+        "    {\n<br>"
+        "      \"name\": \"Router\",\n<br>"
+        "      \"ip\": \"192.168.0.1\"\n<br>"
+        "    },\n<br>"
+        "    {\n<br>"
+        "      \"name\": \"Google DNS (Test)\",\n<br>"
+        "      \"ip\": \"8.8.8.8\"\n<br>"
+        "    }\n<br>"
+        "  ]<br>\n"
+        "}\n"
+        "</div>\n");
+
+    server.sendContent("<form action='/save' method='POST'>\n");
+    server.sendContent("<textarea name='configRaw' rows='25'>\n");
+    server.sendContent(configContent);
+    server.sendContent("\n</textarea><br><br>\n");
+    server.sendContent("<input type='submit' class='submit' value='Save and Reboot'>\n");
+    server.sendContent("</form>\n");
+
     server.sendContent(HTML_END);
   }
 
@@ -271,33 +214,53 @@ public:
     text.replace("\"", "&quot;");
     return text;
   }
-
-  void streamNewConfigPage(String ssid, String password, String deviceIP, String deviceName, String serverAddress, String disableList)
-  {
-    String safeSSID = escapeHtml(ssid);
-    String safePassword = escapeHtml(password);
-    String safeDeviceIP = escapeHtml(deviceIP);
-    String safeDeviceName = escapeHtml(deviceName);
-    String safeServerAddress = escapeHtml(serverAddress);
-    String safeDisableList = escapeHtml(disableList);
-    safeDisableList.replace("\r", "");
-
-    server.sendContent(HTML_BEGIN);
-    server.sendContent("<h1>Device configuration</h1>");
-    server.sendContent(END_LINE);
-    server.sendContent("<div class='container'><form action='/saveNewConfig' method='POST'>\n");
-    server.sendContent("<table>\n");
-
-    server.sendContent("<tr><td>SSID</td><td><input type='text' name='ssid' value='" + safeSSID + "'></td></tr>\n");
-    server.sendContent("<tr><td>Password</td><td><input type='text' name='password' value='" + safePassword + "'></td></tr>\n");
-    server.sendContent("<tr><td>Device IP</td><td><input type='text' name='deviceIP' value='" + safeDeviceIP + "'></td></tr>\n");
-    server.sendContent("<tr><td>Device Name</td><td><input type='text' name='deviceName' value='" + safeDeviceName + "'></td></tr>\n");
-    server.sendContent("<tr><td>Server Address</td><td><input type='text' name='serverAddress' value='" + safeServerAddress + "'></td></tr>\n");
-    server.sendContent("<tr><td>Disable list  </td><td><input type='text' name='disableList'   value='" + safeDisableList + "'></td></tr>\n");
-
-    server.sendContent("<tr><td colspan='2'><input type='submit' class='submit' value='Save configuration'></td></tr>\n");
-    server.sendContent("</table>\n</form></div>");
-    server.sendContent(END_LINE);
-    server.sendContent(HTML_END);
-  }
 };
+
+static WebGui webGui;
+
+void handleRoot()
+{
+  server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  server.send(200, "text/html", "");
+
+  if (configSaved)
+  {
+    webGui.streamWebPage();
+  }
+  else
+  {
+    String configContent = readRawConfig();
+    webGui.streamConfigPage(configContent);
+  }
+
+  server.sendContent("");
+}
+
+void handleSave()
+{
+  if (!server.hasArg("configRaw"))
+  {
+    server.send(400, "text/plain", "No configuration data!");
+    return;
+  }
+
+  if (!saveRawConfig(server.arg("configRaw")))
+  {
+    server.send(500, "text/plain", "Error saving to flash memory");
+    return;
+  }
+
+  server.send(200, "text/html", "<h2>Configuration saved! ESP will reboot now.</h2>");
+
+  delay(1000);
+  ESP.restart();
+}
+
+void initWebGUI()
+{
+  server.on("/", handleRoot);
+  server.on("/config", HTTP_GET, handleRoot);
+  server.on("/save", HTTP_POST, handleSave);
+  server.begin();
+  Serial.println(F("Web GUI Started"));
+}

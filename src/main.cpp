@@ -12,7 +12,6 @@ String appVersion = "100.100";
 #include "BOARD_CONFIG.h"
 #include "BOARD_JSON.h"
 #include "BOARD_WEB_GUI.h" // Web GUI management file
-WebGui webGui;
 
 #include "MODULE_OLED.h"
 #include "MODULE_PIR.h"
@@ -45,6 +44,7 @@ void setup()
 {
 
     Serial.begin(115200);
+    initLog(true);
     initLittleFS();
     loadConfiguration();
 
@@ -84,6 +84,7 @@ void setup()
             if (secondsLeft <= 0)
             {
                 Serial.println("no clients. Starting normally.");
+                configSaved = true;
                 break;
             }
         }

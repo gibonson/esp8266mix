@@ -53,7 +53,7 @@ void initOled()
   {
     addLog("MODULE_OLED - Allocation or connection failed! Hardware missing?");
     isOledConnected = false;
-    delete display;
+    // delete display;
     display = nullptr;
     return;
   }

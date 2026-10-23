@@ -4,7 +4,7 @@
 const int MOTION_SENSOR = 5;          // GPIO5 = D1 - Motion Sensor
 volatile bool motionDetected = false;
 
-ICACHE_RAM_ATTR void detectsMovement()
+IRAM_ATTR void detectsMovement()
 {
     motionDetected = true;
 }

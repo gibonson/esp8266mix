@@ -1,5 +1,7 @@
 #pragma once
 
+#include <WiFiClientSecure.h>
+
 String _pushoverToken = "";
 String _pushoverUser = "";
 String _pushoverDeviceName = "";

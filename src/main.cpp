@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <ESP8266Ping.h>
-#include <WiFiClientSecure.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 #include <ESP8266WebServer.h>

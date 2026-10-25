@@ -53,11 +53,11 @@ void sendJson(String addInfo, int value, String type, String requestID = "")
 
   if (httpCode > 0)
   {
-    addLog("BOARD_JSON - Send JSON Success (" + String(httpCode) + "): " + jsonString);
+    addLog("BOARD_JSON - " + requestID + " Send JSON Success (" + String(httpCode) + ")");
   }
   else
   {
-    addLog("BOARD_JSON - Send JSON Error: " + http.errorToString(httpCode));
+    addLog("BOARD_JSON - " + requestID + " Send JSON Error: " + http.errorToString(httpCode));
   }
   http.end();
 }
@@ -66,5 +66,5 @@ void responseJson(String addInfo, int value, String type, String requestID = "")
 {
   String jsonString = buildJsonString(addInfo, value, type, requestID);
   server.send(200, "application/json", jsonString);
-  addLog("BOARD_JSON - Response JSON sent:" + jsonString);
+  addLog("BOARD_JSON - " + requestID + " HttpResponse JSON sent.");
 }

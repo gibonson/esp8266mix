@@ -8,33 +8,6 @@
 String moduleList = "DS18B20,DHT22,OLED,BuiltinLed,RADIO_433"; // List of modules available in the system
 void setupRouting()
 {
-
-    server.on("/logs", HTTP_GET, []()
-              {
-                  server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-                  server.send(200, "text/plain", "");
-
-                  int start = (logIndex + LOG_SIZE - logCount) % LOG_SIZE;
-                  for (int i = 0; i < logCount; i++)
-                  {
-                      int idx = (start + i) % LOG_SIZE;
-                      if (logs[idx].length() > 0)
-                      {
-                          server.sendContent(logs[idx] + "\n"); // Wysyłamy log po logu
-                      }
-                  }
-                  server.sendContent(""); // Koniec strumienia
-              });
-
-    server.on("/status", HTTP_GET, []()
-              { responseJson("Connection ok", 1, "log", "Device Status"); });
-
-    server.on("/restart", HTTP_GET, []()
-              {
-    responseJson("Reset", 1, "log", "Device Status");
-    delay(500);
-    ESP.restart(); });
-
     server.on("/json", HTTP_POST, []()
               {
     String jsonString = server.arg("plain"); // Automatyczne pobranie ciała (body) JSON
@@ -49,12 +22,8 @@ void setupRouting()
     String func = jsonDoc["function"].as<String>();
 
     if (func == "lcd") executeOled(jsonDoc);
-    else if (func == "builtinLed") execute_builtinLed(jsonDoc);
-    else if (func == "led_pin_2") execute_led_pin_2(jsonDoc);
-    else if (func == "led_pin_3") execute_led_pin_3(jsonDoc);
-    else if (func == "led_pin_4") execute_led_pin_4(jsonDoc);
-    else if (func == "led_pin_5") execute_led_pin_5(jsonDoc);
-    else if (func == "led_pin_all") execute_led_pin_all(jsonDoc);
+    else if (func == "builtinLed"|| func.startsWith("led_pin_")) execute_single_led(jsonDoc);
+    else if (func == "led_timer") execute_led_timer(jsonDoc);
     else if (func == "getDHT22") execute_dht22(jsonDoc);
     else if (func == "getDS18B20") execute_ds18b20(jsonDoc);
     else if (func.indexOf("433") >= 0) execute_433(jsonDoc);

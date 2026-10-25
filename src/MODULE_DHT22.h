@@ -19,11 +19,8 @@ void init_dht22()
 {
     if (!isModuleActive("DHT22"))
     {
-        addLog("MODULE_DHT22 - Module is disabled in configuration.");
         return;
     }
-
-    addLog("MODULE_DHT22 - enabled.");
     registerModuleGui(renderDHT22Gui);
     dht.begin(); // Initialize the DHT sensor
 }
@@ -32,15 +29,11 @@ void execute_dht22(StaticJsonDocument<400> jsonDoc)
 {
     if (!isModuleActive("DHT22"))
     {
-        addLog("MODULE_DHT22 - Module is disabled in configuration.");
         return;
     }
 
-    // float newT = random(20, 30); // Simulated temperature value
-    // float newH = random(40, 60); // Simulated humidity value
     float newT = dht.readTemperature();
     float newH = dht.readHumidity();
-    responseJson("DHT22 data", 1, "log", jsonDoc["requestID"].as<String>());
-    sendJson("DHT22 temperature: ", newT, "°C", jsonDoc["requestID"].as<String>());
-    sendJson("DHT22 humidity: ", newH, "%", jsonDoc["requestID"].as<String>());
+    sysLog("DHT22 temperature: ", newT, "°C", jsonDoc["requestID"].as<String>(), true, true, true);
+    sysLog("DHT22 humidity: ", newH, "%", jsonDoc["requestID"].as<String>(), true, true, true);
 }

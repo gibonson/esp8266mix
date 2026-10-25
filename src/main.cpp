@@ -10,14 +10,14 @@ String appVersion = "100.100";
 #include "BOARD_LOGGING.h"
 #include "BOARD_CONFIG.h"
 #include "BOARD_JSON.h"
+#include "BOARD_WIFI.h"
+#include "BOARD_PUSHOVER.h"
+#include "BOARD_SYSLOG.h"
 #include "BOARD_WEB_GUI.h" // Web GUI management file
+#include "BOARD_OTA.h"
 
 #include "MODULE_OLED.h"
 #include "MODULE_PIR.h"
-
-#include "BOARD_WIFI.h"
-#include "BOARD_OTA.h"
-#include "BOARD_PUSHOVER.h"
 
 // WatchDog config --------------------------------------------
 #ifdef ESP8266_WATCHDOG
@@ -41,16 +41,15 @@ bool configSaved = false;
 
 void setup()
 {
-
     Serial.begin(115200);
     initLog(true);
     initLittleFS();
     loadConfiguration();
-
+    init_Pir();
     initOled();
+
     updateOled(deviceType + " " + appVersion, "", "  (co tu sie      )", "   \\  odpierdala_/", "    \\/", "     |\\__/,|   ( \\", "   _.|o o  |_   ) )", " -(((---(((--------");
     delay(3000);
-
     String apIP = initAccessPoint(accessPointName, accessPointPassword);
     initWebGUI();
     updateOled("CONFIG MODE", "AP Started!", "", "Go to IP:", apIP, "Waiting for Config...", "", "");
@@ -97,24 +96,19 @@ void setup()
     // Config setup -------------------------------------------
 
     updateOled("SSID: " + String(deviceConfig.ssid), "", "  (Connecting to  )", "   \\  the WIFI  _/", "    \\/", "     |\\__/,|   ( \\", "   _.|o o  |_   ) )", " -(((---(((--------");
-
-    Serial.println("SSID" + deviceConfig.ssid);
-    Serial.println("pass" + deviceConfig.password);
     initWifiClient(deviceConfig.ssid, deviceConfig.password);
-
     updateOled("SSID: " + String(deviceConfig.ssid), "", "  (Okay, I\'m .    )", "   \\  ONLINE!!  _/", "    \\/", "     |\\__/,|   ( \\", "   _.|o o  |_   ) )", " -(((---(((--------");
-    initPushover(deviceConfig.pushoverApiToken, deviceConfig.pushoverUserKey, deviceType + " " + appVersion);
-    sendPushover("Watchdog has just started its watch.");
+    delay(2000);
 
+    initPushover(deviceConfig.pushoverApiToken, deviceConfig.pushoverUserKey, deviceType + " " + appVersion);
+    sendPushover(deviceType + " has just started its watch.");
     initJson(deviceConfig.serverJson, deviceConfig.deviceName, WiFi.localIP().toString());
     sendJson("String addInfo", 666, "String type", "String requestID");
 
     updateOled("SSID: " + String(deviceConfig.ssid), "FIRMWARE UPDATE", "Version: " + appVersion, "OTA Server:", deviceConfig.serverOta.substring(0, 20), "Status:", "...", "");
-    delay(3000);
-
     String otaStatus = checkForUpdates(deviceConfig.serverOta, appVersion);
     updateOled("SSID: " + String(deviceConfig.ssid), "FIRMWARE UPDATE", "Version: " + appVersion, "OTA Server:", deviceConfig.serverOta.substring(0, 20), "Status:", otaStatus, "");
-    delay(3000);
+    delay(2000);
 
     app_setup();
 }

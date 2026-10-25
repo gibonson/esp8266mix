@@ -259,8 +259,39 @@ void handleSave()
 void initWebGUI()
 {
   server.on("/", handleRoot);
-  server.on("/config", HTTP_GET, handleRoot);
+  server.on("/config", HTTP_GET, []()
+            {
+            String configContent = readRawConfig();
+            webGui.streamConfigPage(configContent); });
+
   server.on("/save", HTTP_POST, handleSave);
+  
+  server.on("/logs", HTTP_GET, []()
+            {
+              server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+              server.send(200, "text/plain", "");
+
+              int start = (logIndex + LOG_SIZE - logCount) % LOG_SIZE;
+              for (int i = 0; i < logCount; i++)
+              {
+                int idx = (start + i) % LOG_SIZE;
+                if (logs[idx].length() > 0)
+                {
+                  server.sendContent(logs[idx] + "\n"); // Wysyłamy log po logu
+                }
+              }
+              server.sendContent(""); // Koniec strumienia
+            });
+
+  server.on("/status", HTTP_GET, []()
+            { responseJson("Connection ok", 1, "log", "Device Status"); });
+
+  server.on("/restart", HTTP_GET, []()
+            {
+    responseJson("Reset", 1, "log", "Device Status");
+    delay(500);
+    ESP.restart(); });
+
   server.begin();
   Serial.println(F("Web GUI Started"));
 }

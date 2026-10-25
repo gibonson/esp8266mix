@@ -31,69 +31,45 @@ void render433Gui()
 
 void init_433()
 {
-
     if (!isModuleActive("433"))
     {
-        addLog("MODULE_433 - Module is disabled in configuration.");
         return;
     }
-    addLog("MODULE_433 - enabled");
     registerModuleGui(render433Gui);
-
     mySwitch.enableTransmit(RC_TRANSMITER_PIN); // Transmitter is connected to Arduino Pin #0
     mySwitch.setProtocol(1);                    // Optional set protocol (default is 1, will work for most outlets)
     mySwitch.setPulseLength(350);               // Optional set pulse length.
                                                 // mySwitch.setRepeatTransmit(15);  // Optional set number of transmission repetitions.
 }
 
-void execute_433(StaticJsonDocument<400> jsonDoc)
+void execute_433(StaticJsonDocument<400> &jsonDoc)
 {
     if (!isModuleActive("433"))
     {
-        addLog("MODULE_433 - Module is disabled in configuration.");
         return;
     }
 
-    if (String(jsonDoc["function"]).indexOf("socket1ON") >= 0)
+    String func = jsonDoc["function"].as<String>();
+    String reqID = jsonDoc["requestID"].as<String>();
+
+    int codesON[] = {4433, 5201, 5393};
+    int codesOFF[] = {4436, 5204, 5396};
+
+    for (int i = 1; i <= 3; i++)
     {
-        responseJson("S433_1_ON", 1, "log", jsonDoc["requestID"].as<String>());
-        mySwitch.send(4433, 24);
-        sendJson("S433_1_ON", 1, "log", jsonDoc["requestID"].as<String>());
-    }
-    else if (String(jsonDoc["function"]).indexOf("socket1OFF") >= 0)
-    {
-        responseJson("S433_1_OFF", 0, "log", jsonDoc["requestID"].as<String>());
-        mySwitch.send(4436, 24);
-        sendJson("S433_1_OFF", 0, "log", jsonDoc["requestID"].as<String>());
+        if (func.indexOf("socket" + String(i) + "ON") >= 0)
+        {
+            mySwitch.send(codesON[i - 1], 24);
+            sysLog("S433_" + String(i) + "_ON", 1, "log", reqID, true, true, true);
+            return;
+        }
+        if (func.indexOf("socket" + String(i) + "OFF") >= 0)
+        {
+            mySwitch.send(codesOFF[i - 1], 24);
+            sysLog("S433_" + String(i) + "_OFF", 0, "log", reqID, true, true, true);
+            return;
+        }
     }
 
-    if (String(jsonDoc["function"]).indexOf("socket2ON") >= 0)
-    {
-        responseJson("S433_2_ON", 1, "log", jsonDoc["requestID"].as<String>());
-        mySwitch.send(5201, 24);
-        sendJson("S433_2_ON", 1, "log", jsonDoc["requestID"].as<String>());
-    }
-    else if (String(jsonDoc["function"]).indexOf("socket2OFF") >= 0)
-    {
-        responseJson("S433_2_OFF", 0, "log", jsonDoc["requestID"].as<String>());
-        mySwitch.send(5204, 24);
-        sendJson("S433_2_OFF", 0, "log", jsonDoc["requestID"].as<String>());
-    }
-
-    if (String(jsonDoc["function"]).indexOf("socket3ON") >= 0)
-    {
-        responseJson("S433_3_ON", 1, "log", jsonDoc["requestID"].as<String>());
-        mySwitch.send(5393, 24);
-        sendJson("S433_3_ON", 1, "log", jsonDoc["requestID"].as<String>());
-    }
-    else if (String(jsonDoc["function"]).indexOf("socket3OFF") >= 0)
-    {
-        responseJson("S433_2_OFF", 0, "log", jsonDoc["requestID"].as<String>());
-        mySwitch.send(5396, 24);
-        sendJson("S433_3_OFF", 0, "log", jsonDoc["requestID"].as<String>());
-    }
-    else
-    {
-        responseJson("Unknown 433 function", 0, "error", jsonDoc["requestID"].as<String>());
-    }
+    sysLog("Unknown 433: " + func, 0, "error", reqID, true, true, true);
 }

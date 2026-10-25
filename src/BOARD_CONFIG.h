@@ -37,9 +37,11 @@ bool isModuleActive(String name)
     {
         if (moduleConfig[i].moduleName.equalsIgnoreCase(name))
         {
+            addLog("MODULE_" + name + " - Module is enabled in configuration.");
             return (moduleConfig[i].moduleActive.equalsIgnoreCase("yes"));
         }
     }
+    addLog("MODULE_" + name + " - Module is disabled in configuration.");
     return false; // Jeśli modułu nie ma na liście, domyślnie jest wyłączony
 }
 
@@ -179,7 +181,7 @@ void loadConfiguration()
         addLog("BOARD_CONFIG - JSON format error: " + String(error.c_str()));
         return;
     }
-    
+
     deviceConfig.deviceName = doc["deviceName"] | "";
     deviceConfig.ssid = doc["wifi"]["ssid"] | "";
     deviceConfig.password = doc["wifi"]["password"] | "";

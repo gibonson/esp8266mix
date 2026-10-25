@@ -56,7 +56,7 @@ void renderLEDGui()
   server.sendContent(webGui.formHidden("", "ledState", "off"));
   server.sendContent(webGui.formEnd("Led 5 OFF"));
   server.sendContent(webGui.formBegin());
-  server.sendContent(webGui.formHidden("", "function", "led_pin_all"));
+  server.sendContent(webGui.formHidden("", "function", "led_timer"));
   server.sendContent(webGui.formText("builtinLed", "value1", "1"));
   server.sendContent(webGui.formText("led_pin_2", "value2", "1"));
   server.sendContent(webGui.formText("led_pin_3", "value3", "1"));
@@ -75,103 +75,47 @@ void init_led_pins()
   pinMode(LED_PIN_5, OUTPUT);
 }
 
-void execute_builtinLed(StaticJsonDocument<400> jsonDoc)
+void execute_single_led(StaticJsonDocument<400> &jsonDoc)
 {
-  String ledState = jsonDoc["ledState"].as<String>();
-  if (ledState == "on")
+  String func = jsonDoc["function"].as<String>();
+  String state = jsonDoc["ledState"].as<String>();
+  String reqID = jsonDoc["requestID"].as<String>();
+
+  int targetPin = -1;
+  if (func == "builtinLed")
+    targetPin = LED_PIN_1;
+  if (func == "led_pin_2")
+    targetPin = LED_PIN_2;
+  if (func == "led_pin_3")
+    targetPin = LED_PIN_3;
+  if (func == "led_pin_4")
+    targetPin = LED_PIN_4;
+  if (func == "led_pin_5")
+    targetPin = LED_PIN_5;
+
+  if (targetPin == -1)
   {
-    digitalWrite(LED_PIN_1, HIGH);
-    responseJson("builtinLed ON", 1, "log", jsonDoc["requestID"].as<String>());
+    sysLog("Unknown LED: " + func, 0, "error", reqID, true, true, true);
+    return;
   }
-  else if (ledState == "off")
+
+  if (state == "on")
   {
-    digitalWrite(LED_PIN_1, LOW);
-    responseJson("builtinLed OFF", 1, "log", jsonDoc["requestID"].as<String>());
+    digitalWrite(targetPin, HIGH);
+    sysLog(func + " ON", 1, "log", reqID, true, true, true);
+  }
+  else if (state == "off")
+  {
+    digitalWrite(targetPin, LOW);
+    sysLog(func + " OFF", 0, "log", reqID, true, true, true);
   }
   else
   {
-    responseJson("Unknown builtinLed state", 0, "error", jsonDoc["requestID"].as<String>());
+    sysLog("Unknown state: " + state, 0, "error", reqID, true, true, true);
   }
 }
 
-void execute_led_pin_2(StaticJsonDocument<400> jsonDoc)
-{
-  String ledState = jsonDoc["ledState"].as<String>();
-  if (ledState == "on")
-  {
-    digitalWrite(LED_PIN_2, HIGH);
-    responseJson("led_pin_2 ON", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else if (ledState == "off")
-  {
-    digitalWrite(LED_PIN_2, LOW);
-    responseJson("led_pin_2 OFF", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else
-  {
-    responseJson("Unknown led_pin_2 state", 0, "error", jsonDoc["requestID"].as<String>());
-  }
-}
-
-void execute_led_pin_3(StaticJsonDocument<400> jsonDoc)
-{
-  String ledState = jsonDoc["ledState"].as<String>();
-  if (ledState == "on")
-  {
-    digitalWrite(LED_PIN_3, HIGH);
-    responseJson("led_pin_3 ON", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else if (ledState == "off")
-  {
-    digitalWrite(LED_PIN_3, LOW);
-    responseJson("led_pin_3 OFF", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else
-  {
-    addLog("Unknown LED state: " + ledState);
-    responseJson("Unknown led_pin_3 state", 0, "error", jsonDoc["requestID"].as<String>());
-  }
-}
-
-void execute_led_pin_4(StaticJsonDocument<400> jsonDoc)
-{
-  String ledState = jsonDoc["ledState"].as<String>();
-  if (ledState == "on")
-  {
-    digitalWrite(LED_PIN_4, HIGH);
-    responseJson("led_pin_4 ON", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else if (ledState == "off")
-  {
-    digitalWrite(LED_PIN_4, LOW);
-    responseJson("led_pin_4 OFF", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else
-  {
-    responseJson("Unknown led_pin_4 state", 0, "error", jsonDoc["requestID"].as<String>());
-  }
-}
-
-void execute_led_pin_5(StaticJsonDocument<400> jsonDoc)
-{
-  String ledState = jsonDoc["ledState"].as<String>();
-  if (ledState == "on")
-  {
-    digitalWrite(LED_PIN_5, HIGH);
-    responseJson("led_pin_5 ON", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else if (ledState == "off")
-  {
-    digitalWrite(LED_PIN_5, LOW);
-    responseJson("led_pin_5 OFF", 1, "log", jsonDoc["requestID"].as<String>());
-  }
-  else
-  {
-    responseJson("Unknown led_pin_5 state", 0, "error", jsonDoc["requestID"].as<String>());
-  }
-}
-
-void execute_led_pin_all(StaticJsonDocument<400> jsonDoc)
+void execute_led_timer(StaticJsonDocument<400> &jsonDoc)
 {
   sequenceDelays[0] = jsonDoc["value1"].as<int>() * 1000;
   sequenceDelays[1] = jsonDoc["value2"].as<int>() * 1000;
@@ -185,8 +129,7 @@ void execute_led_pin_all(StaticJsonDocument<400> jsonDoc)
   digitalWrite(sequencePins[0], HIGH);
   ledStepStartTime = millis(); // włączamy stoper
 
-  sendJson("led_pin_all started", 1, "log", sequenceReqID);
-  responseJson("led_pin_all started", 1, "log", sequenceReqID);
+  sysLog("led_pin_timer started", 1, "log", sequenceReqID, true, true, true);
 }
 
 // Ta funkcja będzie ciągle "nasłuchiwać" w głównej pętli

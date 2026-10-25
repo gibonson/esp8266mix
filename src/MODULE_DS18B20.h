@@ -20,35 +20,28 @@ void init_ds18b20()
 {
     if (!isModuleActive("DS18B20"))
     {
-        addLog("MODULE_DS18B20 - Module is disabled in configuration.");
         return;
     }
-    addLog("MODULE_DS18B20 - enabled.");
     registerModuleGui(renderDS18B20Gui);
     sensors.begin(); // Initialize the DS18B20 sensor
 }
 
 void execute_ds18b20(StaticJsonDocument<400> jsonDoc)
 {
-
     if (!isModuleActive("DS18B20"))
     {
-        addLog("MODULE_DS18B20 - Module is disabled in configuration.");
         return;
     }
 
     sensors.requestTemperatures();
     float newT = sensors.getTempCByIndex(0);
-    Serial.print("DS18B20 Temperature: ");
-    Serial.println(newT);
+
     if (newT == DEVICE_DISCONNECTED_C)
     {
-        responseJson("DS18B20 sensor disconnected", 0, "error", jsonDoc["requestID"].as<String>());
-        sendJson("DS18B20 sensor disconnected: ", 0, "error", jsonDoc["requestID"].as<String>());
+        sysLog("DS18B20 disconnected", 0, "error", jsonDoc["requestID"].as<String>(), true, true, true);
     }
     else
     {
-        responseJson("DS18B20 data", 1, "log", jsonDoc["requestID"].as<String>());
-        sendJson("DS18B20 temperature: ", newT, "°C", jsonDoc["requestID"].as<String>());
+        sysLog("DS18B20 temperature: ", newT, "°C", jsonDoc["requestID"].as<String>(), true, true, true);
     }
 }

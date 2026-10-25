@@ -15,7 +15,6 @@
 static Adafruit_SSD1306 *display = nullptr;
 static bool isOledConnected = false;
 
-#ifdef ESP8266_SATELLITE
 void renderOledGui()
 {
   server.sendContent(webGui.pHtml("webFormOLED"));
@@ -31,20 +30,16 @@ void renderOledGui()
   server.sendContent(webGui.formText("Text to send:", "value8", "1"));
   server.sendContent(webGui.formEnd("Send to LCD"));
 }
-#endif
 
 void initOled()
 {
 
   if (!isModuleActive("OLED"))
   {
-    addLog("MODULE_OLED - Module is disabled in configuration.");
     return;
   }
-  #ifdef ESP8266_SATELLITE
-    registerModuleGui(renderOledGui);
-  #endif
-  
+  registerModuleGui(renderOledGui);
+
   display = new Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
   Wire.begin(OLED_SDA, OLED_SCL);
@@ -75,6 +70,15 @@ void updateOled(String line1, String line2, String line3, String line4, String l
   display->setTextColor(SSD1306_WHITE);
   display->setCursor(0, 0);
 
+  Serial.println(line1);
+  Serial.println(line2);
+  Serial.println(line3);
+  Serial.println(line4);
+  Serial.println(line5);
+  Serial.println(line6);
+  Serial.println(line7);
+  Serial.println(line8);
+
   display->println(line1);
   display->println(line2);
   display->println(line3);
@@ -91,13 +95,13 @@ void executeOled(StaticJsonDocument<400> jsonDoc)
 {
   if (!isModuleActive("OLED"))
   {
-    addLog("MODULE_OLED - Module is disabled in configuration.");
     return;
   }
 
   if (!isOledConnected)
   {
-    responseJson("OLED hardware error", 0, "error", jsonDoc["requestID"].as<String>());
+    sysLog("OLED error", 0, "error", jsonDoc["requestID"].as<String>(), true, true, true);
+
     return;
   }
 
@@ -111,5 +115,5 @@ void executeOled(StaticJsonDocument<400> jsonDoc)
   String v8 = jsonDoc["value8"].as<String>();
 
   updateOled(v1, v2, v3, v4, v5, v6, v7, v8);
-  responseJson("OLED updated", 1, "log", jsonDoc["requestID"].as<String>());
+  sysLog("OLED updated", 1, "log", jsonDoc["requestID"].as<String>(), true, true, true);
 }

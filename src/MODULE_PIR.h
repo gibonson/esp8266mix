@@ -14,10 +14,8 @@ void init_Pir()
 {
     if (!isModuleActive("PIR"))
     {
-        addLog("MODULE_PIR- Module is disabled in configuration.");
         return;
     }
-    addLog("MODULE_PIR - enabled.");
     pinMode(MOTION_SENSOR, INPUT_PULLUP);                                           // PIR Motion Sensor mode INPUT_PULLUP
     attachInterrupt(digitalPinToInterrupt(MOTION_SENSOR), detectsMovement, RISING); // Set motionSensor pin as interrupt, assign interrupt function and set RISING mode
 }
@@ -28,6 +26,6 @@ void checkPir()
     {
         motionDetected = false;
         Serial.println("Interrupt!!! - Motion detected");
-        sendJson("Motion detected", 1, "Alert");
+        sysLog("Motion detected", 1, "Alert", "PIR", true, true, false);
     }
 }

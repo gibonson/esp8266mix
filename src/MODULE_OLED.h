@@ -117,3 +117,41 @@ void executeOled(StaticJsonDocument<400> jsonDoc)
   updateOled(v1, v2, v3, v4, v5, v6, v7, v8);
   sysLog("OLED updated", 1, "log", jsonDoc["requestID"].as<String>(), true, true, true);
 }
+
+void drawSplashScreen(const unsigned char* bitmapData)
+{
+    if (!isOledConnected || display == nullptr) return;
+
+    display->clearDisplay();
+    
+    display->drawBitmap(0, 0, bitmapData, 128, 64, SSD1306_WHITE);
+    
+    display->display();
+}
+
+// Rysuje grafikę, ale rezerwuje górne 16 pikseli (żółta strefa) na tekst
+void showGraphicScreen(String line1, String line2, const unsigned char* bitmapData)
+{
+    if (!isOledConnected || display == nullptr) return;
+
+    display->clearDisplay();
+    
+    // 1. Rysujemy pełny obrazek z pamięci Flash (zaczynając od rogu 0,0)
+    display->drawBitmap(0, 16, bitmapData, 128, 64, SSD1306_WHITE);
+    
+    // 2. Rysujemy czarny prostokąt na samej górze (czyścimy żółtą strefę)
+    // Parametry: x, y, szerokość, wysokość, kolor
+    display->fillRect(0, 0, 128, 16, SSD1306_BLACK);
+
+    // 3. Wpisujemy tekst w wyczyszczone miejsce
+    display->setTextSize(1);
+    display->setTextColor(SSD1306_WHITE); // Na czarnym tle z pkt 2
+    
+    display->setCursor(0, 0);  // Wiersz 1
+    display->println(line1);
+    
+    display->setCursor(0, 8);  // Wiersz 2
+    display->println(line2);
+    
+    display->display();
+}

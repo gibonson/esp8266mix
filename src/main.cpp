@@ -5,7 +5,13 @@
 #include <ESP8266WebServer.h>
 
 ESP8266WebServer server(80);
-String appVersion = "100.100";
+// String appVersion = "100.100";
+
+#ifndef APP_VERSION
+#define APP_VERSION "0.0.0"
+#endif
+
+String appVersion = APP_VERSION;
 
 #include "BOARD_LOGGING.h"
 #include "BOARD_CONFIG.h"
@@ -15,6 +21,8 @@ String appVersion = "100.100";
 #include "BOARD_SYSLOG.h"
 #include "BOARD_WEB_GUI.h" // Web GUI management file
 #include "BOARD_OTA.h"
+
+#include "BOARD_ASSETS.h"
 
 #include "MODULE_OLED.h"
 #include "MODULE_PIR.h"
@@ -103,12 +111,16 @@ void setup()
     initPushover(deviceConfig.pushoverApiToken, deviceConfig.pushoverUserKey, deviceType + " " + appVersion);
     sendPushover(deviceType + " has just started its watch.");
     initJson(deviceConfig.serverJson, deviceConfig.deviceName, WiFi.localIP().toString());
-    sendJson("String addInfo", 666, "String type", "String requestID");
+    sendJson(deviceType + " - Start", 666, "ESP log", "ESP-START");
 
     updateOled("SSID: " + String(deviceConfig.ssid), "FIRMWARE UPDATE", "Version: " + appVersion, "OTA Server:", deviceConfig.serverOta.substring(0, 20), "Status:", "...", "");
     String otaStatus = checkForUpdates(deviceConfig.serverOta, appVersion);
     updateOled("SSID: " + String(deviceConfig.ssid), "FIRMWARE UPDATE", "Version: " + appVersion, "OTA Server:", deviceConfig.serverOta.substring(0, 20), "Status:", otaStatus, "");
     delay(2000);
+
+    // drawSplashScreen(epd_bitmap_gibonface);
+    // delay(3000);
+    showGraphicScreen("SSID: " + deviceConfig.ssid, "IP: " + WiFi.localIP().toString(), epd_bitmap_gibonface);
 
     app_setup();
 }

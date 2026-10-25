@@ -35,7 +35,7 @@ void setupRouting()
 
 void app_setup()
 {
-    addLog("APP_SATELLITE - Uruchamianie logiki satelity...");
+    addLog("APP_SATELLITE");
 
     init_led_pins(); // Initialize LED pins
     init_ds18b20();  // Initialize DS18B20 sensor configuration
@@ -47,7 +47,6 @@ void app_setup()
 
 void app_loop()
 {
-    Serial.println("test");
     handleLedSequence();   // Checking LEDs without blocking
     server.handleClient(); // <--- Ta JEDNA komenda obsługuje teraz całą sieć WWW i zapytania!
 }

@@ -9,6 +9,7 @@ int currentPhase = 0;
 
 void app_setup()
 {
+        addLog("APP_WATCHDOG");
 }
 
 void app_loop()

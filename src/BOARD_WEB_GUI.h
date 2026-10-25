@@ -39,6 +39,7 @@ public:
                             "<a href='/'><button class='button'>Home</button></a>"
                             "<a href='/logs'><button class='button'>Logs</button></a>"
                             "<a href='/status'><button class='button'>Status</button></a>"
+                            "<a href='/config'><button class='button'>Config</button></a>"
                             "<a href='/restart'><button class='button2'>restart</button></a>"
                             "</div>";
   const String HTML_END = "<script>"

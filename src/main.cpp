@@ -109,7 +109,7 @@ void setup()
     delay(2000);
 
     initPushover(deviceConfig.pushoverApiToken, deviceConfig.pushoverUserKey, deviceType + " " + appVersion);
-    sendPushover(deviceType + " has just started its watch.");
+    sendPushover(deviceType + " - "+ deviceConfig.deviceName + " has just started its watch.");
     initJson(deviceConfig.serverJson, deviceConfig.deviceName, WiFi.localIP().toString());
     sendJson(deviceType + " - Start", 666, "ESP log", "ESP-START");
 
